@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>FlowFunds — Time Tracker + Expenses</title>
+    <title>Nami's Money Tracker</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome 6 -->
@@ -114,16 +114,16 @@
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen">
-    <div class="relative w-full max-w-[400px] h-[100vh] md:h-[100vh] bg-gradient-to-b from-white to-[#fef9e8] dark:from-[#05100e] dark:to-[#0a1f1b] overflow-hidden flex flex-col shadow-2xl">
+    <div class="relative w-full max-w-[400px] h-[100vh] md:h-[100vh] bg-gradient-to-b  dark:from-[#05100e] dark:to-[#0a1f1b] overflow-hidden flex flex-col shadow-2xl">
         
         <!-- Header -->
         <div class="px-5 pt-7 pb-2 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-emerald-500 flex items-center justify-center shadow-md dark:shadow-orange-900/30">
-                    <i class="fa-regular fa-clock text-white text-xl"></i>
+                <div class="h-[60px] w-[60px]  rounded-2xl bg-orange-400 flex items-center justify-center shadow-md dark:shadow-orange-900/30">
+                    <img src="./image-removebg-preview (4).png" class="h-full w-full p-1" alt="">
                 </div>
                 <div>
-                    <h1 class="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white">FlowFunds</h1>
+                    <h1 class="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white">Berry</h1>
                     <p class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 -mt-0.5">time · earn · grow</p>
                 </div>
             </div>
@@ -155,11 +155,11 @@
                     <span class="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-300">net balance</span>
                     <div class="text-4xl font-black text-slate-800 dark:text-white mt-1" id="netBalance">0 MMK</div>
                     <div class="flex justify-between mt-3 gap-3">
-                        <div class="flex-1 bg-orange-50 dark:bg-orange-950/40 rounded-xl py-2">
+                        <div class="flex-1 bg-orange-50 dark:bg-orange-900/40 rounded-xl py-2">
                             <p class="text-[11px] font-semibold text-orange-500 dark:text-orange-300">💰 Income</p>
                             <p class="text-lg font-bold text-orange-600 dark:text-orange-300" id="totalIncome">0</p>
                         </div>
-                        <div class="flex-1 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl py-2">
+                        <div class="flex-1 bg-emerald-50 dark:bg-emerald-900/40 rounded-xl py-2">
                             <p class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-300">🛒 Expenses</p>
                             <p class="text-lg font-bold text-emerald-700 dark:text-emerald-300" id="totalExpenses">0</p>
                         </div>
