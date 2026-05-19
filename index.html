@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>FlowFunds — Time Tracker + Expenses</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f4f9f4;
+            transition: background 0.2s ease;
+        }
+        .dark body {
+            background: #05100e;
+        }
+        .scrollable::-webkit-scrollbar {
+            width: 3px;
+        }
+        .scrollable::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scrollable::-webkit-scrollbar-thumb {
+            background: #f97316;
+            border-radius: 20px;
+        }
+        /* Cards with strong dark mode support */
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(14px);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.03);
+            border: none;
+        }
+        .dark .card {
+            background: rgba(18, 32, 28, 0.94);
+            backdrop-filter: blur(14px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
+        }
+        .nav-active .nav-icon {
+            background: #ffedd5;
+            color: #ea580c;
+            box-shadow: 0 4px 8px rgba(234, 88, 12, 0.15);
+        }
+        .dark .nav-active .nav-icon {
+            background: #2c4f3f;
+            color: #fbbf24;
+            box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+        }
+        .modal-transition {
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        .category-badge {
+            background: #eef2ff;
+            color: #065f46;
+        }
+        .dark .category-badge {
+            background: #1f3d3a;
+            color: #bbf7d0;
+            border: 0.5px solid rgba(187, 247, 208, 0.3);
+        }
+        /* Fix all dark mode inputs and selects */
+        .dark input, .dark select, .dark textarea {
+            background-color: #0f241f;
+            border-color: #2a4a41;
+            color: #f1f5f9;
+        }
+        .dark input::placeholder, .dark textarea::placeholder {
+            color: #8ba59b;
+        }
+        .dark select option {
+            background-color: #0f241f;
+            color: #f1f5f9;
+        }
+        .dark .bg-orange-500 {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+        .dark .bg-emerald-600 {
+            background: linear-gradient(135deg, #059669, #047857);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+        /* Guarantee text colors in dark mode */
+        .dark, .dark * {
+            color-scheme: dark;
+        }
+        .dark .text-slate-800, .dark .text-slate-700, .dark .text-slate-600 {
+            color: #e2e8f0 !important;
+        }
+        .dark .text-slate-500, .dark .text-slate-400 {
+            color: #cbd5e1 !important;
+        }
+        .dark .text-slate-300 {
+            color: #f1f5f9 !important;
+        }
+        .dark .text-white {
+            color: #ffffff !important;
+        }
+        .dark .text-orange-500, .dark .text-orange-600 {
+            color: #fb923c !important;
+        }
+        .dark .text-emerald-600, .dark .text-emerald-700 {
+            color: #6ee7b7 !important;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="relative w-full max-w-[400px] h-[100vh] md:h-[100vh] bg-gradient-to-b from-white to-[#fef9e8] dark:from-[#05100e] dark:to-[#0a1f1b] overflow-hidden flex flex-col shadow-2xl">
+        
+        <!-- Header -->
+        <div class="px-5 pt-7 pb-2 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-emerald-500 flex items-center justify-center shadow-md dark:shadow-orange-900/30">
+                    <i class="fa-regular fa-clock text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white">FlowFunds</h1>
+                    <p class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 -mt-0.5">time · earn · grow</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button id="themeToggle" class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-slate-800 text-amber-600 dark:text-amber-300 flex items-center justify-center shadow-sm active:scale-95 transition-all">
+                    <i class="fa-solid fa-moon dark:hidden text-lg"></i>
+                    <i class="fa-solid fa-sun hidden dark:inline text-lg"></i>
+                </button>
+                <button id="resetBtn" class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-slate-800 text-amber-600 dark:text-amber-300 flex items-center justify-center shadow-sm active:scale-95 transition-all">
+                    <i class="fa-solid fa-rotate-right text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Inspiring quote -->
+        <div class="px-5 mt-1">
+            <div class="card rounded-2xl px-4 py-3 flex items-center gap-3">
+                <span class="text-2xl">⏱️</span>
+                <p id="motivationText" class="text-sm font-medium text-slate-600 dark:text-slate-200 leading-relaxed">track your time, grow your balance</p>
+            </div>
+        </div>
+
+        <!-- Scrollable content -->
+        <main class="flex-1 overflow-y-auto px-5 py-5 space-y-6 scrollable" id="mainScroll">
+            
+            <!-- HOME VIEW -->
+            <div id="homeView" class="space-y-5">
+                <div class="card rounded-2xl p-5 text-center">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-300">net balance</span>
+                    <div class="text-4xl font-black text-slate-800 dark:text-white mt-1" id="netBalance">0 MMK</div>
+                    <div class="flex justify-between mt-3 gap-3">
+                        <div class="flex-1 bg-orange-50 dark:bg-orange-950/40 rounded-xl py-2">
+                            <p class="text-[11px] font-semibold text-orange-500 dark:text-orange-300">💰 Income</p>
+                            <p class="text-lg font-bold text-orange-600 dark:text-orange-300" id="totalIncome">0</p>
+                        </div>
+                        <div class="flex-1 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl py-2">
+                            <p class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-300">🛒 Expenses</p>
+                            <p class="text-lg font-bold text-emerald-700 dark:text-emerald-300" id="totalExpenses">0</p>
+                        </div>
+                    </div>
+                    <div class="relative flex justify-center my-3">
+                        <svg class="w-28 h-28 -rotate-90">
+                            <circle cx="56" cy="56" r="46" stroke="#e2e8f0" stroke-width="6" fill="transparent" class="dark:stroke-slate-700"/>
+                            <circle id="goalRing" cx="56" cy="56" r="46" stroke="url(#ringGrad)" stroke-width="7" stroke-linecap="round" fill="transparent" stroke-dasharray="289" stroke-dashoffset="289" class="ring-progress"/>
+                            <defs><linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f97316"/><stop offset="100%" stop-color="#10b981"/></linearGradient></defs>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-[9px] font-semibold text-slate-500 dark:text-slate-400">goals</span>
+                            <span class="text-lg font-black text-orange-500 dark:text-emerald-300" id="goalPercent">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="card rounded-2xl p-4">
+                        <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-slate-500 dark:text-slate-300">⭐ favorite work</span><i class="fa-regular fa-briefcase text-orange-400 dark:text-orange-300"></i></div>
+                        <p class="text-base font-bold text-slate-800 dark:text-white" id="favRole">—</p>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1" id="favCount"></p>
+                    </div>
+                    <div class="card rounded-2xl p-4">
+                        <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-slate-500 dark:text-slate-300">📊 top spend</span><i class="fa-regular fa-chart-line text-emerald-500 dark:text-emerald-300"></i></div>
+                        <p class="text-base font-bold text-slate-800 dark:text-white" id="topCategory">—</p>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1" id="topCategoryAmount">0 MMK</p>
+                    </div>
+                </div>
+
+                <div><div class="flex justify-between items-center mb-2"><span class="text-sm font-semibold text-slate-600 dark:text-slate-300"><i class="fa-regular fa-clock mr-1"></i> recent moves</span></div><div id="recentActivity" class="space-y-2"></div></div>
+            </div>
+
+            <!-- INCOME VIEW (with time in/out) -->
+            <div id="incomeView" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-slate-800 dark:text-white">⏱️ Work shifts</h2>
+                    <button id="openShiftModalBtn" class="px-5 py-2.5 bg-orange-500 text-white text-sm font-semibold rounded-full shadow-md active:scale-95 transition-all flex items-center gap-2"><i class="fa-solid fa-plus"></i> Add shift</button>
+                </div>
+                <div id="shiftsList" class="space-y-3 pb-4"></div>
+            </div>
+
+            <!-- EXPENSES VIEW -->
+            <div id="expensesView" class="hidden space-y-4">
+                <div class="flex justify-between items-center"><h2 class="text-xl font-bold text-slate-800 dark:text-white">📝 Spending log</h2><button id="openExpenseModalBtn" class="px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-full shadow-md active:scale-95 transition-all flex items-center gap-2"><i class="fa-solid fa-plus"></i> Add expense</button></div>
+                <div id="expensesList" class="space-y-3 pb-4"></div>
+            </div>
+
+            <!-- GOALS VIEW -->
+            <div id="goalsView" class="hidden space-y-4">
+                <div class="flex justify-between items-center"><h2 class="text-xl font-bold text-slate-800 dark:text-white">🎯 Savings goals</h2><button id="openGoalModalBtn" class="px-5 py-2.5 bg-orange-500 text-white text-sm font-semibold rounded-full shadow-md active:scale-95 transition-all flex items-center gap-2"><i class="fa-solid fa-plus"></i> New goal</button></div>
+                <div id="goalsList" class="space-y-3 pb-4"></div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <div class="card rounded-2xl mx-4 mb-3 p-1.5 flex justify-around shadow-md">
+            <button data-tab="home" class="nav-item flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all"><div class="nav-icon w-11 h-11 rounded-xl flex items-center justify-center text-slate-500 dark:text-slate-400 text-xl"><i class="fa-solid fa-house"></i></div><span class="text-[10px] font-medium text-slate-500 dark:text-slate-300">Home</span></button>
+            <button data-tab="income" class="nav-item flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all"><div class="nav-icon w-11 h-11 rounded-xl flex items-center justify-center text-slate-500 dark:text-slate-400 text-xl"><i class="fa-solid fa-chart-simple"></i></div><span class="text-[10px] font-medium text-slate-500 dark:text-slate-300">Income</span></button>
+            <button data-tab="expenses" class="nav-item flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all"><div class="nav-icon w-11 h-11 rounded-xl flex items-center justify-center text-slate-500 dark:text-slate-400 text-xl"><i class="fa-solid fa-cart-shopping"></i></div><span class="text-[10px] font-medium text-slate-500 dark:text-slate-300">Spends</span></button>
+            <button data-tab="goals" class="nav-item flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all"><div class="nav-icon w-11 h-11 rounded-xl flex items-center justify-center text-slate-500 dark:text-slate-400 text-xl"><i class="fa-solid fa-piggy-bank"></i></div><span class="text-[10px] font-medium text-slate-500 dark:text-slate-300">Goals</span></button>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Income (Time in / Time out) -->
+    <div id="shiftModal" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-end justify-center z-50 transition-all duration-200 invisible opacity-0">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-[400px] rounded-t-3xl p-5 transform translate-y-full modal-transition max-h-[85%] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-3">
+                <h3 class="text-xl font-bold text-orange-500 dark:text-orange-400">⏱️ Log shift</h3>
+                <button id="closeShiftModal" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4 mt-4">
+                <div><label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">Date</label><input type="date" id="shiftDate" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white"></div>
+                <div><label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">Job / Role</label><input type="text" id="shiftLabel" placeholder="e.g., freelance, tutoring" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">Time in</label><input type="time" id="timeIn" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white"></div>
+                    <div><label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">Time out</label><input type="time" id="timeOut" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white"></div>
+                </div>
+                <div class="bg-amber-50 dark:bg-slate-800/90 p-3 rounded-xl">
+                    <p class="text-sm font-bold mb-2 text-slate-700 dark:text-slate-200">Hourly rate (MMK)</p>
+                    <div class="flex gap-2 mb-3"><button data-mode="saved" class="rateModeBtn flex-1 py-2 rounded-xl bg-white dark:bg-slate-700 border text-sm font-medium dark:text-white">📚 Saved</button><button data-mode="new" class="rateModeBtn flex-1 py-2 rounded-xl bg-white dark:bg-slate-700 border text-sm font-medium dark:text-white">✨ New</button></div>
+                    <div id="savedRatePanel"><select id="savedRateSelect" class="w-full p-2 rounded-xl border dark:border-slate-600 dark:bg-slate-800 dark:text-white"><option>— saved rates —</option></select></div>
+                    <div id="newRatePanel" class="hidden"><input type="number" id="newRateValue" placeholder="rate in MMK" class="w-full p-2 rounded-xl border dark:border-slate-600 dark:bg-slate-800 dark:text-white"></div>
+                </div>
+                <div><label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">Note (optional)</label><input type="text" id="shiftNote" placeholder="any thoughts about the shift" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white"></div>
+                <button id="confirmShift" class="w-full py-3.5 bg-orange-500 text-white font-bold rounded-xl shadow-md active:scale-95">Save earnings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Expense -->
+    <div id="expenseModal" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-end justify-center z-50 transition-all duration-200 invisible opacity-0">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-[400px] rounded-t-3xl p-5 transform translate-y-full modal-transition">
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-3"><h3 class="text-xl font-bold text-emerald-600 dark:text-emerald-400">💸 Add expense</h3><button id="closeExpenseModal" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800"><i class="fa-solid fa-xmark text-slate-600 dark:text-slate-300"></i></button></div>
+            <div class="space-y-4 mt-4">
+                <div><label class="text-xs font-semibold text-slate-600 dark:text-slate-300">Date</label><input type="date" id="expenseDate" class="w-full p-3 rounded-xl border dark:border-slate-700 dark:bg-slate-800 dark:text-white"></div>
+                <div><label class="text-xs font-semibold text-slate-600 dark:text-slate-300">Category</label><select id="expenseCategory" class="w-full p-3 rounded-xl border dark:border-slate-700 dark:bg-slate-800 dark:text-white"><option>Food</option><option>Transport</option><option>Shopping</option><option>Bills</option><option>Entertainment</option><option>Health</option><option>Other</option></select></div>
+                <div><label class="text-xs font-semibold text-slate-600 dark:text-slate-300">Amount (MMK)</label><input type="number" id="expenseAmount" placeholder="0" class="w-full p-3 rounded-xl border dark:border-slate-700 dark:bg-slate-800 dark:text-white"></div>
+                <div><label class="text-xs font-semibold text-slate-600 dark:text-slate-300">Note</label><input type="text" id="expenseNote" placeholder="coffee, taxi..." class="w-full p-3 rounded-xl border dark:border-slate-700 dark:bg-slate-800 dark:text-white"></div>
+                <button id="confirmExpense" class="w-full py-3.5 bg-emerald-600 text-white font-bold rounded-xl shadow-md">Add expense</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Goal -->
+    <div id="goalModal" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-end justify-center z-50 transition-all duration-200 invisible opacity-0">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-[400px] rounded-t-3xl p-5 transform translate-y-full modal-transition">
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-3"><h3 class="text-xl font-bold text-orange-500 dark:text-orange-400">New goal</h3><button id="closeGoalModal" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800"><i class="fa-solid fa-xmark text-slate-600 dark:text-slate-300"></i></button></div>
+            <div class="space-y-4 mt-4">
+                <input type="text" id="goalName" placeholder="Goal name (e.g., MacBook)" class="w-full p-3 rounded-xl border dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                <div class="grid grid-cols-2 gap-3"><input type="number" id="goalTarget" placeholder="Target MMK" class="p-3 rounded-xl border dark:border-slate-700 dark:bg-slate-800 dark:text-white"><input type="number" id="goalCurrent" placeholder="Current MMK" value="0" class="p-3 rounded-xl border dark:border-slate-700 dark:bg-slate-800 dark:text-white"></div>
+                <select id="goalIcon" class="w-full p-3 rounded-xl border dark:border-slate-700 dark:bg-slate-800 dark:text-white"><option value="💻">💻 Tech</option><option value="✈️">✈️ Travel</option><option value="🌸">🌸 Self-care</option><option value="📚">📚 Study</option><option value="🏠">🏠 Home</option></select>
+                <button id="confirmGoal" class="w-full py-3.5 bg-orange-500 text-white font-bold rounded-xl">Create goal</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data models
+        let shifts = [];
+        let expenses = [];
+        let rates = [];
+        let goals = [];
+
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+        function saveToLocal() { localStorage.setItem('ff_shifts', JSON.stringify(shifts)); localStorage.setItem('ff_expenses', JSON.stringify(expenses)); localStorage.setItem('ff_rates', JSON.stringify(rates)); localStorage.setItem('ff_goals', JSON.stringify(goals)); }
+        function loadFromLocal() { shifts = JSON.parse(localStorage.getItem('ff_shifts') || '[]'); expenses = JSON.parse(localStorage.getItem('ff_expenses') || '[]'); rates = JSON.parse(localStorage.getItem('ff_rates') || '[]'); goals = JSON.parse(localStorage.getItem('ff_goals') || '[]'); }
+
+        function calcHours(timeIn, timeOut) {
+            if (!timeIn || !timeOut) return 0;
+            let [inH, inM] = timeIn.split(':').map(Number);
+            let [outH, outM] = timeOut.split(':').map(Number);
+            let inTotal = inH * 60 + inM;
+            let outTotal = outH * 60 + outM;
+            let diffMin = outTotal - inTotal;
+            if (diffMin < 0) diffMin += 24 * 60;
+            return parseFloat((diffMin / 60).toFixed(2));
+        }
+
+        function addShift(data) {
+            const hoursWorked = calcHours(data.timeIn, data.timeOut);
+            const newShift = {
+                id: Date.now().toString(),
+                date: data.date,
+                label: data.label.trim(),
+                timeIn: data.timeIn,
+                timeOut: data.timeOut,
+                hours: hoursWorked,
+                hourlyRate: data.hourlyRate,
+                earnings: hoursWorked * data.hourlyRate,
+                note: data.note || ''
+            };
+            shifts.unshift(newShift);
+            saveToLocal();
+            renderAll();
+        }
+
+        function addExpense(data) { expenses.unshift({ id: Date.now().toString(), date: data.date, category: data.category, amount: data.amount, note: data.note }); saveToLocal(); renderAll(); }
+        function addGoal(data) { goals.push({ id: Date.now().toString(), name: data.name.trim(), target: data.target, current: data.current, icon: data.icon }); saveToLocal(); renderAll(); }
+        function deleteShift(id) { shifts = shifts.filter(s => s.id !== id); saveToLocal(); renderAll(); }
+        function deleteExpense(id) { expenses = expenses.filter(e => e.id !== id); saveToLocal(); renderAll(); }
+        function deleteGoal(id) { goals = goals.filter(g => g.id !== id); saveToLocal(); renderAll(); }
+        function adjustGoal(goalId, isAdd) { const goal = goals.find(g => g.id === goalId); if (!goal) return; let amount = prompt(isAdd ? `Add to "${goal.name}"` : `Withdraw from "${goal.name}"`, "5000"); if (!amount) return; let num = parseFloat(amount); if (isNaN(num) || num <= 0) return; if (isAdd) goal.current += num; else { if (goal.current < num) { alert("Not enough in goal savings."); return; } goal.current -= num; } saveToLocal(); renderAll(); }
+
+        function renderAll() { renderHome(); renderShifts(); renderExpenses(); renderGoals(); updateMotivation(); populateRateDropdown(); }
+
+        function renderHome() {
+            const totalIncome = shifts.reduce((sum, s) => sum + s.earnings, 0);
+            const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
+            const net = totalIncome - totalExpense;
+            document.getElementById('netBalance').innerHTML = net.toLocaleString() + ' MMK';
+            document.getElementById('totalIncome').innerHTML = totalIncome.toLocaleString();
+            document.getElementById('totalExpenses').innerHTML = totalExpense.toLocaleString();
+
+            const totalTarget = goals.reduce((a,b)=> a + b.target, 0);
+            const totalCurrent = goals.reduce((a,b)=> a + b.current, 0);
+            const percent = totalTarget > 0 ? Math.min(100, Math.floor((totalCurrent / totalTarget) * 100)) : 0;
+            document.getElementById('goalPercent').innerText = percent + '%';
+            const circumference = 289; const offset = circumference - (percent / 100) * circumference; const ring = document.getElementById('goalRing'); if(ring) ring.style.strokeDashoffset = offset;
+
+            const roleMap = {}; shifts.forEach(s => { roleMap[s.label] = (roleMap[s.label] || 0) + 1; });
+            let fav = '-', maxCount = 0; for(let [role, cnt] of Object.entries(roleMap)) if(cnt > maxCount) { maxCount = cnt; fav = role; }
+            document.getElementById('favRole').innerText = fav; document.getElementById('favCount').innerText = maxCount ? `${maxCount} time${maxCount>1?'s':''}` : 'no shifts';
+
+            const categorySpend = {}; expenses.forEach(e => { categorySpend[e.category] = (categorySpend[e.category] || 0) + e.amount; });
+            let topCat = '—', topAmt = 0; for(let [cat, amt] of Object.entries(categorySpend)) if(amt > topAmt) { topAmt = amt; topCat = cat; }
+            document.getElementById('topCategory').innerText = topCat; document.getElementById('topCategoryAmount').innerHTML = topAmt.toLocaleString() + ' MMK';
+
+            const activities = [...shifts.map(s => ({ type: 'income', date: s.date, label: s.label, amount: s.earnings, note: s.note, hours: s.hours })), ...expenses.map(e => ({ type: 'expense', date: e.date, label: e.category, amount: e.amount, note: e.note }))].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,5);
+            const container = document.getElementById('recentActivity');
+            if(activities.length === 0) { container.innerHTML = '<div class="card rounded-2xl p-4 text-center text-sm text-slate-500 dark:text-slate-400">✨ No transactions yet. Add income or expense.</div>'; return; }
+            container.innerHTML = activities.map(a => `<div class="card rounded-2xl p-3 flex justify-between items-center"><div><div class="flex items-center gap-2"><span class="text-[11px] font-bold ${a.type === 'income' ? 'text-orange-500 dark:text-orange-400' : 'text-emerald-600 dark:text-emerald-400'}">${a.type === 'income' ? '💰 +' : '🛒 -'}</span><span class="text-xs text-slate-500 dark:text-slate-400">${a.date}</span></div><p class="font-semibold text-sm dark:text-white">${escapeHtml(a.label)}</p>${a.type==='income' && a.hours ? `<p class="text-[10px] text-slate-500 dark:text-slate-400">${a.hours}h worked</p>` : ''}${a.note ? `<p class="text-[10px] italic text-slate-400 dark:text-slate-500">${escapeHtml(a.note)}</p>` : ''}</div><div class="font-bold ${a.type === 'income' ? 'text-orange-600 dark:text-orange-300' : 'text-rose-500 dark:text-rose-400'}">${a.type === 'income' ? '+' : '-'}${a.amount.toLocaleString()} MMK</div></div>`).join('');
+        }
+
+        function renderShifts() {
+            const container = document.getElementById('shiftsList');
+            if(!shifts.length) { container.innerHTML = `<div class="card rounded-2xl p-8 text-center text-slate-500 dark:text-slate-400"><i class="fa-regular fa-clock fa-2x mb-2"></i><p>No shifts logged.<br>Tap + to add with time in/out</p></div>`; return; }
+            container.innerHTML = shifts.map(s => `<div class="card rounded-2xl p-4 flex justify-between items-center"><div><span class="text-xs bg-orange-100 dark:bg-orange-950/70 px-2 py-0.5 rounded-full text-slate-700 dark:text-orange-200">${s.date}</span><p class="font-bold mt-1 dark:text-white">${escapeHtml(s.label)}</p><div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-300 mt-0.5"><i class="fa-regular fa-hourglass-half"></i> ${s.timeIn} — ${s.timeOut} (${s.hours}h)</div><p class="text-xs dark:text-slate-300">💰 ${s.hourlyRate.toLocaleString()} MMK/hr</p>${s.note ? `<p class="text-[11px] italic mt-1 text-slate-500 dark:text-slate-400">📌 ${escapeHtml(s.note)}</p>` : ''}</div><div class="text-right"><p class="font-bold text-orange-500">+${s.earnings.toLocaleString()} MMK</p><button onclick="window.deleteShiftFn('${s.id}')" class="text-rose-400 text-xs mt-1"><i class="fa-regular fa-trash-can"></i> del</button></div></div>`).join('');
+        }
+
+        function renderExpenses() {
+            const container = document.getElementById('expensesList');
+            if(!expenses.length) { container.innerHTML = `<div class="card rounded-2xl p-8 text-center text-slate-500 dark:text-slate-400"><i class="fa-regular fa-credit-card fa-2x mb-2"></i><p>No expenses yet.<br>Track your spending</p></div>`; return; }
+            container.innerHTML = expenses.map(e => `<div class="card rounded-2xl p-4 flex justify-between items-center"><div><span class="text-xs bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full text-slate-700 dark:text-emerald-200">${e.date}</span><div class="flex items-center gap-2 mt-1"><span class="category-badge text-[11px] px-2 py-0.5 rounded-full">${escapeHtml(e.category)}</span><p class="font-semibold text-sm dark:text-white">${escapeHtml(e.note || e.category)}</p></div></div><div class="text-right"><p class="font-bold text-rose-500">-${e.amount.toLocaleString()} MMK</p><button onclick="window.deleteExpenseFn('${e.id}')" class="text-rose-400 text-xs"><i class="fa-regular fa-trash-can"></i> del</button></div></div>`).join('');
+        }
+
+        function renderGoals() {
+            const container = document.getElementById('goalsList');
+            if(!goals.length) { container.innerHTML = `<div class="card rounded-2xl p-8 text-center text-slate-500 dark:text-slate-400"><i class="fa-regular fa-star fa-2x mb-2"></i><p>Set a savings goal to stay inspired.</p></div>`; return; }
+            container.innerHTML = goals.map(g => { const perc = Math.min(100, Math.floor((g.current / g.target) * 100)); return `<div class="card rounded-2xl p-4"><div class="flex justify-between items-start"><div><span class="text-2xl mr-2">${g.icon}</span><span class="font-bold dark:text-white">${escapeHtml(g.name)}</span></div><div class="flex gap-2"><button onclick="window.adjustGoalFn('${g.id}', true)" class="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/40"><i class="fa-solid fa-plus text-orange-600 dark:text-orange-300"></i></button><button onclick="window.adjustGoalFn('${g.id}', false)" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800"><i class="fa-solid fa-minus dark:text-slate-300"></i></button><button onclick="window.deleteGoalFn('${g.id}')" class="text-rose-400"><i class="fa-regular fa-trash-can"></i></button></div></div><div class="flex justify-between text-xs mt-2 dark:text-slate-300"><span>Target ${g.target.toLocaleString()} MMK</span><span>Saved ${g.current.toLocaleString()}</span></div><div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mt-2"><div class="bg-gradient-to-r from-orange-400 to-emerald-500 h-2 rounded-full" style="width:${perc}%"></div></div><div class="text-right text-[10px] mt-1 dark:text-slate-400">${perc}% achieved</div></div>`; }).join('');
+        }
+
+        function updateMotivation() { const totalInc = shifts.reduce((a,b)=>a+b.earnings,0); const totalExp = expenses.reduce((a,b)=>a+b.amount,0); const net = totalInc - totalExp; const msg = net >= 0 ? `🌱 Net +${net.toLocaleString()} MMK — keep shining!` : `🌿 Net ${net.toLocaleString()} MMK — small steps, big impact.`; document.getElementById('motivationText').innerText = msg; }
+        function populateRateDropdown() { const select = document.getElementById('savedRateSelect'); if(rates.length === 0) select.innerHTML = '<option class="dark:bg-slate-800">— saved rates —</option>'; else select.innerHTML = [...rates].sort((a,b)=>b-a).map(r => `<option value="${r}" class="dark:bg-slate-800">${r.toLocaleString()} MMK/hr</option>`).join(''); }
+
+        let currentRateMode = 'saved';
+        function initRateMode() { const savedPanel = document.getElementById('savedRatePanel'), newPanel = document.getElementById('newRatePanel'); document.querySelectorAll('.rateModeBtn').forEach(btn => { btn.addEventListener('click', () => { currentRateMode = btn.dataset.mode; if(currentRateMode === 'saved'){ savedPanel.classList.remove('hidden'); newPanel.classList.add('hidden'); } else { savedPanel.classList.add('hidden'); newPanel.classList.remove('hidden'); } }); }); }
+        function openShiftModalFn() { shiftModal.classList.remove('invisible','opacity-0'); shiftModal.querySelector('.modal-transition').classList.remove('translate-y-full'); }
+        function closeShiftModal() { shiftModal.classList.add('invisible','opacity-0'); shiftModal.querySelector('.modal-transition').classList.add('translate-y-full'); }
+        function openExpenseModalFn() { expenseModal.classList.remove('invisible','opacity-0'); expenseModal.querySelector('.modal-transition').classList.remove('translate-y-full'); }
+        function closeExpenseModal() { expenseModal.classList.add('invisible','opacity-0'); expenseModal.querySelector('.modal-transition').classList.add('translate-y-full'); }
+        function openGoalModalFn() { goalModal.classList.remove('invisible','opacity-0'); goalModal.querySelector('.modal-transition').classList.remove('translate-y-full'); }
+        function closeGoalModal() { goalModal.classList.add('invisible','opacity-0'); goalModal.querySelector('.modal-transition').classList.add('translate-y-full'); }
+
+        document.getElementById('confirmShift').onclick = () => {
+            const date = document.getElementById('shiftDate').value;
+            const label = document.getElementById('shiftLabel').value.trim();
+            const timeIn = document.getElementById('timeIn').value;
+            const timeOut = document.getElementById('timeOut').value;
+            let rate = 0;
+            if(currentRateMode === 'saved') { const val = document.getElementById('savedRateSelect').value; if(!val || val === '— saved rates —'){ alert("Select a rate or create new."); return; } rate = parseFloat(val); } 
+            else { rate = parseFloat(document.getElementById('newRateValue').value); if(!isNaN(rate) && rate>0 && !rates.includes(rate)){ rates.push(rate); saveToLocal(); populateRateDropdown(); } }
+            if(!date || !label || !timeIn || !timeOut || isNaN(rate) || rate<=0){ alert("Please fill all fields correctly."); return; }
+            addShift({ date, label, timeIn, timeOut, hourlyRate: rate, note: document.getElementById('shiftNote').value });
+            closeShiftModal();
+            document.getElementById('shiftLabel').value = ''; document.getElementById('timeIn').value = ''; document.getElementById('timeOut').value = ''; document.getElementById('newRateValue').value = ''; document.getElementById('shiftNote').value = ''; document.getElementById('shiftDate').valueAsDate = new Date();
+        };
+        document.getElementById('confirmExpense').onclick = () => { const date=document.getElementById('expenseDate').value, category=document.getElementById('expenseCategory').value, amount=parseFloat(document.getElementById('expenseAmount').value), note=document.getElementById('expenseNote').value; if(!date||isNaN(amount)||amount<=0){ alert("Enter valid date and amount."); return; } addExpense({date, category, amount, note}); closeExpenseModal(); document.getElementById('expenseAmount').value=''; document.getElementById('expenseNote').value=''; document.getElementById('expenseDate').valueAsDate=new Date(); };
+        document.getElementById('confirmGoal').onclick = () => { const name=document.getElementById('goalName').value.trim(), target=parseFloat(document.getElementById('goalTarget').value), current=parseFloat(document.getElementById('goalCurrent').value)||0, icon=document.getElementById('goalIcon').value; if(!name||isNaN(target)||target<=0){ alert("Enter goal name and target."); return; } addGoal({name, target, current, icon}); closeGoalModal(); document.getElementById('goalName').value=''; document.getElementById('goalTarget').value=''; document.getElementById('goalCurrent').value='0'; };
+
+        function switchTab(tabId){ document.getElementById('homeView').classList.add('hidden'); document.getElementById('incomeView').classList.add('hidden'); document.getElementById('expensesView').classList.add('hidden'); document.getElementById('goalsView').classList.add('hidden'); if(tabId==='home') document.getElementById('homeView').classList.remove('hidden'); if(tabId==='income') document.getElementById('incomeView').classList.remove('hidden'); if(tabId==='expenses') document.getElementById('expensesView').classList.remove('hidden'); if(tabId==='goals') document.getElementById('goalsView').classList.remove('hidden'); document.querySelectorAll('.nav-item').forEach(btn=>{ btn.classList.remove('nav-active'); if(btn.dataset.tab===tabId) btn.classList.add('nav-active'); }); }
+        document.querySelectorAll('.nav-item').forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.tab))); switchTab('home');
+        document.getElementById('openShiftModalBtn').onclick=openShiftModalFn; document.getElementById('openExpenseModalBtn').onclick=openExpenseModalFn; document.getElementById('openGoalModalBtn').onclick=openGoalModalFn;
+        document.getElementById('closeShiftModal').onclick=closeShiftModal; document.getElementById('closeExpenseModal').onclick=closeExpenseModal; document.getElementById('closeGoalModal').onclick=closeGoalModal;
+        const shiftModal=document.getElementById('shiftModal'), expenseModal=document.getElementById('expenseModal'), goalModal=document.getElementById('goalModal');
+        themeToggle.onclick=()=>{ document.documentElement.classList.toggle('dark'); localStorage.setItem('ff_theme', document.documentElement.classList.contains('dark')?'dark':'light'); };
+        if(localStorage.getItem('ff_theme')==='dark') document.documentElement.classList.add('dark');
+        resetBtn.onclick=()=>{ if(confirm("⚠️ Reset all income, expenses, rates & goals? This can't be undone.")){ localStorage.clear(); shifts=[]; expenses=[]; rates=[]; goals=[]; saveToLocal(); renderAll(); alert("✨ Fresh start. Track wisely!"); } };
+        window.deleteShiftFn=deleteShift; window.deleteExpenseFn=deleteExpense; window.deleteGoalFn=deleteGoal; window.adjustGoalFn=adjustGoal;
+        loadFromLocal(); renderAll(); initRateMode(); document.getElementById('shiftDate').valueAsDate=new Date(); document.getElementById('expenseDate').valueAsDate=new Date();
+    </script>
+</body>
+</html>
